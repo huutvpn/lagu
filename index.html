@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Web MP3 Bebas</title>
+<title>Web Musik HTML</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{
@@ -16,12 +16,17 @@ body{
     margin:0;
 }
 .player{
-    width:350px;
+    width:330px;
     background:#1e1e1e;
     padding:20px;
     border-radius:15px;
 }
-h3{text-align:center}
+h3{text-align:center;margin:10px 0}
+.controls{
+    display:flex;
+    justify-content:space-around;
+    margin:10px 0;
+}
 button{
     background:#ff0066;
     border:none;
@@ -30,46 +35,29 @@ button{
     border-radius:50%;
     cursor:pointer;
 }
-.controls{
-    display:flex;
-    justify-content:space-around;
-    margin:10px 0;
-}
+button.active{background:#00ccff}
 .range{width:100%}
-.playlist{
-    max-height:160px;
-    overflow:auto;
-    margin-top:10px;
-}
-.playlist div{
-    padding:6px;
-    cursor:pointer;
-}
-.active{color:#ff0066}
 .time{
     display:flex;
     justify-content:space-between;
     font-size:12px;
 }
-.upload{
-    background:#333;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:10px;
-    text-align:center;
+.playlist{
+    max-height:130px;
+    overflow:auto;
+    margin-top:10px;
 }
+.playlist div{
+    padding:5px;
+    cursor:pointer;
+}
+.playlist .active{color:#ff0066}
 </style>
 </head>
 <body>
 
 <div class="player">
-
-<h3 id="judul">Web MP3 Bebas</h3>
-
-<div class="upload">
-<input type="file" id="fileInput" accept="audio/mp3" multiple webkitdirectory>
-<p style="font-size:12px">Pilih banyak MP3 / satu folder</p>
-</div>
+<h3 id="judul">Web Musik</h3>
 
 <audio id="audio"></audio>
 
@@ -90,11 +78,20 @@ button{
 <input type="range" id="volume" class="range" min="0" max="1" step="0.01" value="0.7">
 
 <div class="playlist" id="playlist"></div>
-
 </div>
 
 <script>
-let lagu = [];
+const lagu = [
+ "lagu/1.mp3",
+ "lagu/2.mp3",
+ "lagu/3.mp3"
+];
+
+const judulAcak = [
+ "Nada Senja","Jejak Rindu","Langit Malam",
+ "Irama Jiwa","Cerita Kita","Peluk Sunyi"
+];
+
 let index = 0;
 let shuffle = false;
 
@@ -106,35 +103,29 @@ const current = document.getElementById("current");
 const duration = document.getElementById("duration");
 const volume = document.getElementById("volume");
 const shuffleBtn = document.getElementById("shuffleBtn");
-const fileInput = document.getElementById("fileInput");
 
-const judulAcak = [
- "Nada Malam","Jejak Rindu","Irama Jiwa","Langit Senja",
- "Cerita Kita","Hening","Peluk Sunyi","Bayang Waktu"
-];
+function randomJudul(){
+    return judulAcak[Math.floor(Math.random()*judulAcak.length)];
+}
 
-fileInput.onchange = () => {
-    lagu = [...fileInput.files];
-    playlist.innerHTML = "";
-    lagu.forEach((file,i)=>{
-        const div = document.createElement("div");
-        div.textContent = "🎵 " + judulAcak[Math.floor(Math.random()*judulAcak.length)];
-        div.onclick = ()=>{index=i;load();audio.play();}
-        playlist.appendChild(div);
-    });
-    index = 0;
-    load();
-};
+lagu.forEach((l,i)=>{
+    const div=document.createElement("div");
+    div.innerText="🎵 "+randomJudul();
+    div.onclick=()=>{index=i;load();audio.play();}
+    playlist.appendChild(div);
+});
 
 function load(){
-    audio.src = URL.createObjectURL(lagu[index]);
-    judul.innerText = "Memutar Lagu " + (index+1);
+    audio.src = lagu[index];
+    judul.innerText = randomJudul();
     document.querySelectorAll(".playlist div").forEach((e,n)=>{
         e.classList.toggle("active",n===index);
     });
 }
 
-function playPause(){ audio.paused ? audio.play() : audio.pause(); }
+function playPause(){
+    audio.paused ? audio.play() : audio.pause();
+}
 
 function next(){
     index = shuffle ? Math.floor(Math.random()*lagu.length) : (index+1)%lagu.length;
@@ -148,23 +139,26 @@ function prev(){
 
 function toggleShuffle(){
     shuffle=!shuffle;
-    shuffleBtn.style.background = shuffle ? "#00ccff" : "#ff0066";
+    shuffleBtn.classList.toggle("active",shuffle);
 }
 
 audio.addEventListener("timeupdate",()=>{
-    progress.value = (audio.currentTime/audio.duration)*100 || 0;
-    current.innerText = format(audio.currentTime);
-    duration.innerText = format(audio.duration);
+    progress.value=(audio.currentTime/audio.duration)*100||0;
+    current.innerText=format(audio.currentTime);
+    duration.innerText=format(audio.duration);
 });
 
-progress.oninput = ()=> audio.currentTime = (progress.value/100)*audio.duration;
-audio.onended = next;
-volume.oninput = ()=> audio.volume = volume.value;
+progress.oninput=()=>audio.currentTime=(progress.value/100)*audio.duration;
+audio.onended=next;
+volume.oninput=()=>audio.volume=volume.value;
 
 function format(t){
     if(isNaN(t)) return "0:00";
     return Math.floor(t/60)+":"+("0"+Math.floor(t%60)).slice(-2);
 }
+
+load();
+audio.volume=0.7;
 </script>
 
 </body>
