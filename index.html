@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Web MP3 Bebas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    background:#111;
+    color:#fff;
+    font-family:Arial;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    margin:0;
+}
+.player{
+    width:350px;
+    background:#1e1e1e;
+    padding:20px;
+    border-radius:15px;
+}
+h3{text-align:center}
+button{
+    background:#ff0066;
+    border:none;
+    color:white;
+    padding:10px;
+    border-radius:50%;
+    cursor:pointer;
+}
+.controls{
+    display:flex;
+    justify-content:space-around;
+    margin:10px 0;
+}
+.range{width:100%}
+.playlist{
+    max-height:160px;
+    overflow:auto;
+    margin-top:10px;
+}
+.playlist div{
+    padding:6px;
+    cursor:pointer;
+}
+.active{color:#ff0066}
+.time{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+}
+.upload{
+    background:#333;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+    text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="player">
+
+<h3 id="judul">Web MP3 Bebas</h3>
+
+<div class="upload">
+<input type="file" id="fileInput" accept="audio/mp3" multiple webkitdirectory>
+<p style="font-size:12px">Pilih banyak MP3 / satu folder</p>
+</div>
+
+<audio id="audio"></audio>
+
+<input type="range" id="progress" class="range" value="0">
+
+<div class="time">
+<span id="current">0:00</span>
+<span id="duration">0:00</span>
+</div>
+
+<div class="controls">
+<button onclick="prev()">⏮</button>
+<button onclick="playPause()">▶</button>
+<button onclick="next()">⏭</button>
+<button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
+</div>
+
+<input type="range" id="volume" class="range" min="0" max="1" step="0.01" value="0.7">
+
+<div class="playlist" id="playlist"></div>
+
+</div>
+
+<script>
+let lagu = [];
+let index = 0;
+let shuffle = false;
+
+const audio = document.getElementById("audio");
+const judul = document.getElementById("judul");
+const playlist = document.getElementById("playlist");
+const progress = document.getElementById("progress");
+const current = document.getElementById("current");
+const duration = document.getElementById("duration");
+const volume = document.getElementById("volume");
+const shuffleBtn = document.getElementById("shuffleBtn");
+const fileInput = document.getElementById("fileInput");
+
+const judulAcak = [
+ "Nada Malam","Jejak Rindu","Irama Jiwa","Langit Senja",
+ "Cerita Kita","Hening","Peluk Sunyi","Bayang Waktu"
+];
+
+fileInput.onchange = () => {
+    lagu = [...fileInput.files];
+    playlist.innerHTML = "";
+    lagu.forEach((file,i)=>{
+        const div = document.createElement("div");
+        div.textContent = "🎵 " + judulAcak[Math.floor(Math.random()*judulAcak.length)];
+        div.onclick = ()=>{index=i;load();audio.play();}
+        playlist.appendChild(div);
+    });
+    index = 0;
+    load();
+};
+
+function load(){
+    audio.src = URL.createObjectURL(lagu[index]);
+    judul.innerText = "Memutar Lagu " + (index+1);
+    document.querySelectorAll(".playlist div").forEach((e,n)=>{
+        e.classList.toggle("active",n===index);
+    });
+}
+
+function playPause(){ audio.paused ? audio.play() : audio.pause(); }
+
+function next(){
+    index = shuffle ? Math.floor(Math.random()*lagu.length) : (index+1)%lagu.length;
+    load(); audio.play();
+}
+
+function prev(){
+    index = (index-1+lagu.length)%lagu.length;
+    load(); audio.play();
+}
+
+function toggleShuffle(){
+    shuffle=!shuffle;
+    shuffleBtn.style.background = shuffle ? "#00ccff" : "#ff0066";
+}
+
+audio.addEventListener("timeupdate",()=>{
+    progress.value = (audio.currentTime/audio.duration)*100 || 0;
+    current.innerText = format(audio.currentTime);
+    duration.innerText = format(audio.duration);
+});
+
+progress.oninput = ()=> audio.currentTime = (progress.value/100)*audio.duration;
+audio.onended = next;
+volume.oninput = ()=> audio.volume = volume.value;
+
+function format(t){
+    if(isNaN(t)) return "0:00";
+    return Math.floor(t/60)+":"+("0"+Math.floor(t%60)).slice(-2);
+}
+</script>
+
+</body>
+</html>
