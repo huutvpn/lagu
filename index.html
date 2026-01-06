@@ -2,160 +2,17 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>POLDER Music Player</title>
+<title>Music Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{
-  background:#111;
-  color:#fff;
-  font-family:Arial;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  margin:0;
-}
-.player{
-  width:340px;
-  background:#1e1e1e;
-  padding:20px;
-  border-radius:15px;
-}
-h3{text-align:center;margin:10px 0}
-.controls{
-  display:flex;
-  justify-content:space-around;
-  margin:10px 0;
-}
-button{
-  background:#ff0066;
-  border:none;
-  color:white;
-  padding:10px;
-  border-radius:50%;
-  cursor:pointer;
-}
-button.active{background:#00ccff}
-.range{width:100%}
-.time{
-  display:flex;
-  justify-content:space-between;
-  font-size:12px;
-}
-.playlist{
-  max-height:150px;
-  overflow:auto;
-  margin-top:10px;
-}
-.playlist div{
-  padding:6px;
-  cursor:pointer;
-}
-.playlist .active{color:#ff0066}
-</style>
 </head>
-<body>
+<body style="background:#111;color:white;text-align:center;padding-top:40px">
 
-<div class="player">
-<h3 id="judul">POLDER Music</h3>
+<h2>Music Player GitHub</h2>
 
-<audio id="audio"></audio>
-
-<input type="range" id="progress" class="range" value="0">
-
-<div class="time">
-  <span id="current">0:00</span>
-  <span id="duration">0:00</span>
-</div>
-
-<div class="controls">
-  <button onclick="prev()">⏮</button>
-  <button onclick="playPause()">▶</button>
-  <button onclick="next()">⏭</button>
-  <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
-</div>
-
-<input type="range" id="volume" class="range" min="0" max="1" step="0.01" value="0.7">
-
-<div class="playlist" id="playlist"></div>
-</div>
-
-<script>
-/* === DAFTAR LAGU DARI REPO GITHUB === */
-const lagu = [
-  "lagu/lagu1.mp3",
-  "lagu/lagu2.mp3",
-  "lagu/lagu3.mp3"
-];
-
-/* Judul bebas (tidak pakai nama file) */
-const judulAcak = [
-  "Nada Senja","Jejak Rindu","Irama Jiwa",
-  "Langit Malam","Cerita Kita","Peluk Sunyi"
-];
-
-let index = 0;
-let shuffle = false;
-
-const audio = document.getElementById("audio");
-const judul = document.getElementById("judul");
-const playlist = document.getElementById("playlist");
-const progress = document.getElementById("progress");
-const current = document.getElementById("current");
-const duration = document.getElementById("duration");
-const volume = document.getElementById("volume");
-const shuffleBtn = document.getElementById("shuffleBtn");
-
-function randJudul(){
-  return judulAcak[Math.floor(Math.random()*judulAcak.length)];
-}
-
-lagu.forEach((l,i)=>{
-  const div = document.createElement("div");
-  div.innerText = "🎵 " + randJudul();
-  div.onclick = ()=>{ index=i; load(); audio.play(); }
-  playlist.appendChild(div);
-});
-
-function load(){
-  audio.src = lagu[index];
-  judul.innerText = randJudul();
-  document.querySelectorAll(".playlist div").forEach((e,n)=>{
-    e.classList.toggle("active",n===index);
-  });
-}
-
-function playPause(){ audio.paused ? audio.play() : audio.pause(); }
-function next(){
-  index = shuffle ? Math.floor(Math.random()*lagu.length) : (index+1)%lagu.length;
-  load(); audio.play();
-}
-function prev(){
-  index = (index-1+lagu.length)%lagu.length;
-  load(); audio.play();
-}
-function toggleShuffle(){
-  shuffle=!shuffle;
-  shuffleBtn.classList.toggle("active",shuffle);
-}
-
-audio.addEventListener("timeupdate",()=>{
-  progress.value = (audio.currentTime/audio.duration)*100 || 0;
-  current.innerText = format(audio.currentTime);
-  duration.innerText = format(audio.duration);
-});
-progress.oninput = ()=> audio.currentTime = (progress.value/100)*audio.duration;
-audio.onended = next;
-volume.oninput = ()=> audio.volume = volume.value;
-
-function format(t){
-  if(isNaN(t)) return "0:00";
-  return Math.floor(t/60)+":"+("0"+Math.floor(t%60)).slice(-2);
-}
-
-load();
-audio.volume = 0.7;
-</script>
+<audio controls style="width:90%">
+  <source src="musik/Saat_Ku_Jatuh_Cinta_Original.mp3" type="audio/mpeg">
+  Browser tidak mendukung audio
+</audio>
 
 </body>
 </html>
