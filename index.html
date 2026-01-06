@@ -6,27 +6,208 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{
-  background:#111;
-  color:white;
-  text-align:center;
-  font-family:Arial;
-  padding-top:50px;
+  margin:0;
+  height:100vh;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:Arial,sans-serif;
+  color:#fff;
 }
-audio{
-  width:90%;
-  margin-top:20px;
+.player{
+  width:350px;
+  background:rgba(0,0,0,.6);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 20px 40px rgba(0,0,0,.5);
+}
+h2{text-align:center;margin:5px 0}
+#judul{text-align:center;font-size:14px;opacity:.8}
+.controls{
+  display:flex;
+  justify-content:space-around;
+  margin:12px 0;
+}
+button{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  border:none;
+  background:#ff0066;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+}
+button.active{
+  background:#00e5ff;
+}
+.range{width:100%}
+.time{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  opacity:.8;
+}
+.playlist{
+  max-height:160px;
+  overflow:auto;
+  margin-top:12px;
+  background:rgba(255,255,255,.06);
+  border-radius:10px;
+  padding:5px;
+}
+.playlist div{
+  padding:6px;
+  font-size:13px;
+  cursor:pointer;
+}
+.playlist div.active{
+  color:#ff0066;
+  font-weight:bold;
+}
+.mode{
+  text-align:center;
+  font-size:12px;
+  margin-top:6px;
+  opacity:.8;
 }
 </style>
 </head>
 <body>
 
-<h2>Web Musik GitHub</h2>
-<p>Peterpan – Menunggu</p>
+<div class="player">
+  <h2>🎧 Music Player</h2>
+  <div id="judul">Lagu 1</div>
 
-<audio controls>
-  <source src="musik/Peterpan_menunggu.mp3" type="audio/mpeg">
-  Browser tidak mendukung audio.
-</audio>
+  <audio id="audio"></audio>
+
+  <input type="range" id="progress" class="range" value="0">
+
+  <div class="time">
+    <span id="current">0:00</span>
+    <span id="duration">0:00</span>
+  </div>
+
+  <div class="controls">
+    <button onclick="prev()">⏮</button>
+    <button onclick="playPause()">▶</button>
+    <button onclick="next()">⏭</button>
+    <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
+    <button id="repeatBtn" onclick="toggleRepeat()">🔁</button>
+  </div>
+
+  <div class="mode" id="modeText">Repeat: ALL</div>
+
+  <input type="range" id="volume" class="range" min="0" max="1" step="0.01" value="0.7">
+
+  <div class="playlist" id="playlist"></div>
+</div>
+
+<script>
+const folder = "musik/";
+const maxLagu = 1000;   // praktis tanpa batas
+let daftar = [];
+let index = 0;
+let shuffle = false;
+let repeatMode = "all"; // all | one
+
+for(let i=1;i<=maxLagu;i++){
+  daftar.push(folder + i + ".mp3");
+}
+
+const audio = document.getElementById("audio");
+const judul = document.getElementById("judul");
+const playlist = document.getElementById("playlist");
+const progress = document.getElementById("progress");
+const current = document.getElementById("current");
+const duration = document.getElementById("duration");
+const volume = document.getElementById("volume");
+const shuffleBtn = document.getElementById("shuffleBtn");
+const repeatBtn = document.getElementById("repeatBtn");
+const modeText = document.getElementById("modeText");
+
+// playlist
+daftar.forEach((l,i)=>{
+  const div = document.createElement("div");
+  div.textContent = "🎵 Lagu " + (i+1);
+  div.onclick = ()=>{
+    index=i;
+    load();
+    audio.play();
+  };
+  playlist.appendChild(div);
+});
+
+function load(){
+  audio.src = daftar[index];
+  judul.innerText = "Lagu " + (index+1);
+  document.querySelectorAll(".playlist div").forEach((e,n)=>{
+    e.classList.toggle("active", n===index);
+  });
+}
+
+function playPause(){
+  audio.paused ? audio.play() : audio.pause();
+}
+
+function next(){
+  if(shuffle){
+    index = Math.floor(Math.random()*daftar.length);
+  }else{
+    index = (index+1)%daftar.length;
+  }
+  load(); audio.play();
+}
+
+function prev(){
+  index = (index-1+daftar.length)%daftar.length;
+  load(); audio.play();
+}
+
+function toggleShuffle(){
+  shuffle=!shuffle;
+  shuffleBtn.classList.toggle("active",shuffle);
+}
+
+function toggleRepeat(){
+  repeatMode = repeatMode==="all" ? "one" : "all";
+  repeatBtn.classList.toggle("active",repeatMode==="one");
+  modeText.innerText = "Repeat: " + repeatMode.toUpperCase();
+}
+
+// waktu & progress
+audio.addEventListener("timeupdate",()=>{
+  progress.value = (audio.currentTime/audio.duration)*100 || 0;
+  current.innerText = format(audio.currentTime);
+  duration.innerText = format(audio.duration);
+});
+
+progress.oninput = ()=>{
+  audio.currentTime = (progress.value/100)*audio.duration;
+};
+
+audio.onended = ()=>{
+  if(repeatMode==="one"){
+    audio.currentTime = 0;
+    audio.play();
+  }else{
+    next();
+  }
+};
+
+volume.oninput = ()=> audio.volume = volume.value;
+
+function format(t){
+  if(isNaN(t)) return "0:00";
+  return Math.floor(t/60)+":"+("0"+Math.floor(t%60)).slice(-2);
+}
+
+// AUTO PLAY (browser perlu interaksi, tapi kita coba)
+load();
+audio.volume = 0.7;
+window.addEventListener("click", ()=>audio.play(), {once:true});
+</script>
 
 </body>
 </html>
